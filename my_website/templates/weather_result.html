@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Weather Result for {{ city }}</title>
+</head>
+<body>
+    <h1>Weather Result for {{ city }}</h1>
+    <p>Temperature: {{ temperature }} °C</p>
+    <p>Feels Like: {{ feels_like }} °C</p>
+    <p>Weather: {{ weather }}</p>
+    <p>Humidity: {{ humidity }} %</p>
+    <p>Visibility: {{ visibility }} m</p>
+    <p>Wind Speed: {{ wind_speed }} m/s</p>
+    <p>Wind Direction: {{ wind_direction }} °</p>
+    <a href="{% url 'weather_request' %}">Back to Form</a>
+</body>
+</html>

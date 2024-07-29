@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Weather Request</title>
+</head>
+<body>
+    <h1>Enter City to Get Weather</h1>
+    <form method="get" action="{% url 'weather_request' %}">
+        {{ form.as_p }}
+        <button type="submit">Get Weather</button>
+    </form>
+</body>
+</html>

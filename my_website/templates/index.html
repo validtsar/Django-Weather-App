@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %}
+    <link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
+    <meta charset="UTF-8">
+    <title>{% block title %}Registration Form{% endblock %}</title>
+</head>
+<body>
+    {% block body %}
+    <h1 style="font-size: 24px; text-align: center; margin-top: 30px">
+        До вашої уваги реєстраційна форма. Для безпечного користування сайтом вам необхідно її заповнити.
+    </h1>
+
+    {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+                <li>{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    <div style="margin-left: 30px; margin-top: 30px; max-width: 400px;">
+        <form method="POST">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <div class="form-check">
+                <input type="checkbox" class="form-check-input" id="agreement_check">
+                <label class="form-check-label" for="agreement_check">Даю згоду на обробку моїх персональних даних</label>
+            </div>
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+    </div>
+    {% endblock %}
+</body>
+</html>
