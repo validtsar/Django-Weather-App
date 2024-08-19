@@ -17,11 +17,18 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include, re_path
 from weather_app import views
+from django.conf import settings
+from django.conf.urls.static import static
+from django.contrib.auth import views as auth_views
 from weather_app.views import *
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('profile/', views.profile_view, name='profile'),
+    path('login/', LoginUser.as_view(), name='login'),
+    path('logout/', LoginUser.as_view(), name='logout'),
     path('', views.index, name='index'),
-    path('weather/', views.weather_request, name='weather_request'),
-]
+    path('weather_form/', views.weather_request, name='weather_request'),
+    path('register/', RegisterUser.as_view(), name='register'),
+    path('history/', history_view, name='history'),
+] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+

@@ -1,17 +1,74 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Weather Result for {{ city }}</title>
-</head>
-<body>
+{% extends 'base.html' %}
+
+{% block title %}Weather in {{ city }}{% endblock %}
+
+{% block head %}
+    <style>
+        .weather-table {
+            width: 50%;
+            border-collapse: collapse;
+            margin-top: 50px;
+            background-color: rgba(255, 255, 255, 0);
+        }
+        .weather-table th, .weather-table td {
+            padding: 10px;
+            border: 1px solid #dddddd;
+            text-align: center;
+        }
+        .weather-table th {
+            background-color: rgba(242, 242, 242, 0.8);
+        }
+        .weather-link {
+            margin-top: 20px;
+            text-decoration: none;
+            color: #000;
+            padding: 10px 20px;
+            background-color: rgba(242, 242, 242, 0.8);
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .weather-link:hover {
+            background-color: rgba(221, 221, 221, 0.8);
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
     <h1>Weather Result for {{ city }}</h1>
-    <p>Temperature: {{ temperature }} °C</p>
-    <p>Feels Like: {{ feels_like }} °C</p>
-    <p>Weather: {{ weather }}</p>
-    <p>Humidity: {{ humidity }} %</p>
-    <p>Visibility: {{ visibility }} m</p>
-    <p>Wind Speed: {{ wind_speed }} m/s</p>
-    <p>Wind Direction: {{ wind_direction }} °</p>
+    <table>
+        <tr>
+            <th>Parameter</th>
+            <th>Value</th>
+        </tr>
+        <tr>
+            <td>Temperature</td>
+            <td>{{ temperature }} °C</td>
+        </tr>
+        <tr>
+            <td>Feels Like</td>
+            <td>{{ feels_like }} °C</td>
+        </tr>
+        <tr>
+            <td>Weather</td>
+            <td>{{ weather }}</td>
+        </tr>
+        <tr>
+            <td>Humidity</td>
+            <td>{{ humidity }} %</td>
+        </tr>
+        <tr>
+            <td>Visibility</td>
+            <td>{{ visibility }} m</td>
+        </tr>
+        <tr>
+            <td>Wind Speed</td>
+            <td>{{ wind_speed }} m/s</td>
+        </tr>
+        <tr>
+            <td>Wind Direction</td>
+            <td>{{ wind_direction }} °</td>
+        </tr>
+    </table>
     <a href="{% url 'weather_request' %}">Back to Form</a>
-</body>
-</html>
+{% endblock %}
+

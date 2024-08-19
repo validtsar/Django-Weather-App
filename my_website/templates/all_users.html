@@ -3,16 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <title>All users</title>
+    <style>
+        body {
+            background-color: lightblue;
+            font-family: Arial, sans-serif;
+        }
+        table {
+            width: 50%;
+            margin: 50px auto;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #dddddd;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
 </head>
 <body>
 <h1>All users</h1>
-    {% for name in Profile %}
-    <p>Name: {{ profile.name}} </p>
-    <p>City: {{profile.phone}}</p>
-
-
-        {% endfor %}
-    </ul>
-{% endif %}
+<table>
+    <tr>
+        <th>Name</th>
+        <th>City</th>
+    </tr>
+    {% for profile in profiles %}
+    <tr>
+        <td>{{ profile.name }}</td>
+        <td>{{ profile.city }}</td>
+    </tr>
+    {% empty %}
+    <tr>
+        <td colspan="2">No profiles found.</td>
+    </tr>
+    {% endfor %}
+</table>
 </body>
 </html>

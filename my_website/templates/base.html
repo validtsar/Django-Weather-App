@@ -1,29 +1,62 @@
 <!DOCTYPE html>
-<html lang="en" data-bs-theme="light"> <!-- data-bs-theme="dark" -->
+<html lang="en" data-bs-theme="light">
 <head>
     <meta charset="UTF-8">
-    <title>
-        {% block title %}
-        {{ name }}
-        {% endblock %}
-    </title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
-          integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="New user">
+          integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
 
+    {% load static %}
+    <link rel="icon" href="{% static 'images/weather_favicon.png' %}" type="image/png">
+
+    <title>{% block title %}Weather{% endblock %}</title>
+    <style>
+        body {
+            background: url("{% static 'css/weather_temp.png' %}") no-repeat center fixed;
+            background-size: cover;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        table {
+            width: 50%;
+            margin: 50px auto;
+            border-collapse: collapse;
+            background-color: rgba(255, 255, 255, 0.8);
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #dddddd;
+            text-align: left;
+        }
+
+    </style>
     {% block head %}
-
     {% endblock %}
 </head>
 <body>
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"
-        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
-        crossorigin="New user"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
-        crossorigin="New user"></script>
-{% block body %}
+    <div class="header">
+        <ul id="mainmenu" class="mainmenu">
+            <li><a href="{% url 'history' %}">History</a></li>
+            <li><a href="{% url 'index' %}">Home</a></li>
+            {% if request.user.is_authenticated %}
+            <li class="last"> {{user.username}} | <a href="{% url 'logout' %}">Exit</a></li>
+            <li><a href="{% url 'register' %}">Registration</a></li>
+            {% else %}
+            <li><a href="{% url 'register' %}">Registration</a></li>
+            {% endif %}
+            <li><a href="{% url 'login' %}">Login</a></li>
+        </ul>
+    </div>
 
-{% endblock %}
+    {% block body %}
+    {% endblock %}
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+            integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
+            crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+            crossorigin="anonymous"></script>
 </body>
 </html>

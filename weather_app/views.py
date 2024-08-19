@@ -1,52 +1,81 @@
-
-from django.core.exceptions import ObjectDoesNotExist
-from django.shortcuts import render
-from django.http import HttpResponse, HttpResponseRedirect
-import requests
-
 # Create your views here.
-
-from django.shortcuts import render, redirect, reverse
-from django.contrib.auth.decorators import login_required
-from .models import WeatherRequest, Profile
-from .forms import WeatherRequestForm, Profile_form
-from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
-from django.contrib import messages
+from django.contrib.auth.views import LoginView
 from .data import WeatherWrapper
-from django.contrib.auth import authenticate, login
 from django.db import models
+from django.shortcuts import render, redirect
+from django.contrib.auth import authenticate, login
+from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
+from django.urls import reverse_lazy
+from django.views.generic import ListView, DetailView, CreateView
+from django.contrib.auth.mixins import LoginRequiredMixin
+from .forms import *
+from .models import *
+
+
+
+class RegisterUser(CreateView):
+    form_class = UserRegisterForm
+    template_name = 'register.html'
+    success_url = reverse_lazy('weather_request')
+
+    def get_context_data(self, *, object_list=None, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = "Register"
+        return context
+
+    def form_valid(self, form):
+        user = form.save()
+        login(self.request, user)
+        return redirect(self.success_url)
+
+
+class LoginUser(LoginView):
+    form_class = AuthenticationForm
+    template_name = 'login.html'
+
+    def form_valid(self, form):
+        # Отримання даних користувача з форми
+        # Зберігаємо користувача у сесії після успішної аутентифікації
+        self.request.session['user_pr_id'] = self.request.user.id
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        # Перевіряємо чи користувач вже зареєстрований
+        if hasattr(self.request.user, 'profile'):
+            # Якщо профіль існує, перенаправляємо на сторінку weather_request
+            return reverse('weather_request')
+        else:
+            # Якщо профілю немає, перенаправляємо на сторінку index
+            return reverse('index')
+
+    def get_success_url(self):
+        # Перенаправлення після успішного логіну
+        return reverse('weather_request')
 
 
 def index(request):
     if request.method == 'POST':
-        form = Profile_form(request.POST)
+        form = UserRegisterForm(request.POST)
         if form.is_valid():
             profile = form.save(commit=False)
 
             # Отримання значень з об'єкта profile
-            name = profile.name
-            city = profile.city
+            username = profile.username
+            email = profile.email
 
+            # Створення або отримання користувача
+            user_profile, created = User.objects.get_or_create(username=username, email=email)
+            if not created:
+                user_profile.email = profile.email
+                user_profile.save()
 
-            try:
-                user_profile, created = Profile.objects.get_or_create(name=name, city=city)
-                if not created:
-                    user_profile.city = profile.city
-                    user_profile.save()
-                    messages.info(request, 'The user already exists.')
-                request.session['user_pr_id'] = user_profile.id
-                return redirect('weather_request')
-            except MultipleObjectsReturned:
-                user_profiles = Profile.objects.filter(name=name, city=city)
-                user_profile = user_profiles.first()
-                request.session['user_pr_id'] = user_profile.id
-                messages.warning(request, 'Multiple profiles found. Using the first one.')
-                return redirect('weather_request')
-            except Exception as e:
-                messages.error(request, f'An error occurred: {e}')
-                return render(request, 'index.html', {'form': form})
+            # Зберігання ID користувача в сесії
+            request.session['user_pr_id'] = user_profile.id
+            return redirect('weather_request')
+
     else:
-        form = Profile_form()
+        form = UserRegisterForm()
+
     return render(request, 'index.html', {'form': form})
 
 
@@ -56,38 +85,64 @@ def weather_request(request):
         if form.is_valid():
             city = form.cleaned_data['location']
             weather_data = WeatherWrapper(city)
+            temperature = weather_data.get_temperature()
+            description = weather_data.get_weather()
+
             response_data = {
-                'temperature': weather_data.get_temperature(),
+                'temperature': temperature,
                 'feels_like': weather_data.get_temp_feel(),
-                'weather': weather_data.get_weather(),
+                'weather': description,
                 'humidity': weather_data.get_humidity(),
                 'visibility': weather_data.get_visibility(),
                 'wind_speed': weather_data.get_wind(),
                 'wind_direction': weather_data.get_wind_direct(),
                 'city': city,
             }
-            user_pr = request.session.get('user_pr_id')
-            if not user_pr:
-                return redirect('index')
 
-            profile = Profile.objects.get(id=user_pr)
+            user_pr = request.session.get('user_pr_id')
+            print("User profile ID from session:", user_pr)  # Відлагодження
+
+            if not user_pr:
+                print("User profile ID not found in session.")  # Відлагодження
+                return redirect('register')
+
+            try:
+                profile = User.objects.get(id=user_pr)
+                print("User profile found:", profile)  # Відлагодження
+            except User.DoesNotExist:
+                print("User does not exist in the database.")  # Відлагодження
+                return redirect('register')
+
             weather_request = form.save(commit=False)
             weather_request.user_pr = profile
             weather_request.response_data = str(response_data)
             weather_request.save()
 
+            # Зберігання даних в SearchHistory
+            SearchHistory.objects.create(
+                user=request.user,
+                city=city,
+                temperature=temperature,
+                description=description
+            )
+
             return render(request, 'weather_result.html', response_data)
+        else:
+            print("Form is not valid:", form.errors)
 
     else:
         form = WeatherRequestForm()
     return render(request, 'weather_form.html', {'form': form})
 
-def profile_view(request):
-    if request.method == 'POST':
-        form = Profile_form(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('weather_request')
-    else:
-        form = Profile_form()
-    return render(request, 'profile.html', {'form': form})
+
+# @login_required
+def history_view(request):
+    user = request.user
+    search_history = SearchHistory.objects.filter(user=user).order_by(
+        '-search_date')
+
+    context = {
+        'search_history': search_history,
+    }
+
+    return render(request, 'history.html', context)
